@@ -1,0 +1,25 @@
+{
+  "name": "gas_burndown_chart",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": "kinashi",
+  "license": "UNLICENCED",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "tsc": "tsc --noEmit",
+    "check": "rome check index.ts",
+    "format": "rome format --write index.ts",
+    "lint": "yarn format && yarn check && yarn tsc",
+    "build": "yarn lint && tsc"
+  },
+  "devDependencies": {
+    "@types/google-apps-script": "^1.0.57",
+    "rome": "^11.0.0",
+    "typescript": "^4.9.4"
+  },
+  "volta": {
+    "node": "18.13.0",
+    "yarn": "1.22.19"
+  }
+}
