@@ -17,6 +17,7 @@ type StampRallyResult = {
       };
     };
   };
+  url: string;
 };
 
 type MemberResult = {
@@ -40,6 +41,7 @@ type MemberResult = {
   };
   interviewerCount: number;
   intervieweeCount: number;
+  url: string;
 };
 
 type StampRallyData = {
@@ -189,6 +191,7 @@ const init = () => {
   const stampRallyArray = stampRallyData.map((data) => {
     const interviewerId = data.properties.Interviewer.people?.at(0)?.id;
     const intervieweeId = data.properties.Interviewee.people?.at(0)?.id;
+    const url = data.url;
     const isDone =
       data.properties.Date.date?.start !== null &&
       data.properties.Date.date?.start !== undefined;
@@ -196,6 +199,7 @@ const init = () => {
       interviewerId: interviewerId,
       intervieweeId: intervieweeId,
       isDone: isDone,
+      url: url,
     };
   });
 
@@ -219,15 +223,15 @@ const init = () => {
         rowMember.properties.アカウント.people?.at(0)?.id;
       const targetIntervieweeId =
         columnMember.properties.アカウント.people?.at(0)?.id;
+
+      const stampRallyData = stampRallyArray.find(
+        (stampRally) =>
+          stampRally.interviewerId === targetInterviewerId &&
+          stampRally.intervieweeId === targetIntervieweeId
+      );
+
       // 該当するスタンプラリーがあり実施済み
-      if (
-        stampRallyArray.some(
-          (stampRally) =>
-            stampRally.interviewerId === targetInterviewerId &&
-            stampRally.intervieweeId === targetIntervieweeId &&
-            stampRally.isDone
-        )
-      ) {
+      if (stampRallyData && stampRallyData.isDone) {
         memberData[row].interviewerCount = memberData[row].interviewerCount + 1;
         memberData[column].intervieweeCount =
           memberData[column].intervieweeCount + 1;
@@ -235,22 +239,15 @@ const init = () => {
           .getRange(
             `${getColName(column + START_COLUMN + 1)}${row + START_ROW + 2}`
           )
-          .setValue("◎");
+          .setFormula(`=HYPERLINK("${stampRallyData.url}", "◎")`);
       }
       // 該当するスタンプラリーがあり実施済み
-      if (
-        stampRallyArray.some(
-          (stampRally) =>
-            stampRally.interviewerId === targetInterviewerId &&
-            stampRally.intervieweeId === targetIntervieweeId &&
-            !stampRally.isDone
-        )
-      ) {
+      if (stampRallyData && !stampRallyData.isDone) {
         sheet
           .getRange(
             `${getColName(column + START_COLUMN + 1)}${row + START_ROW + 2}`
           )
-          .setValue("予");
+          .setFormula(`=HYPERLINK("${stampRallyData.url}", "予")`);
       }
     }
   }
@@ -258,9 +255,12 @@ const init = () => {
   // 行のメンバー一覧を描画
   for (let row = 0; row < memberLength; row++) {
     const rowMember = memberData[row];
+    const memberName = rowMember.properties.Name.title?.at(0)?.plain_text;
+    const memberLink = rowMember.url;
+    const link = `=HYPERLINK("${memberLink}", "${memberName}")`;
     sheet
       .getRange(`${getColName(START_COLUMN)}${row + START_ROW + 2}`)
-      .setValue(rowMember.properties.Name.title?.at(0)?.plain_text);
+      .setFormula(link);
     sheet
       .getRange(`${getColName(START_COLUMN - 1)}${row + START_ROW + 2}`)
       .setValue(rowMember.properties.社員番号.number);
@@ -271,9 +271,12 @@ const init = () => {
   // 列のメンバー一覧を描画
   for (let column = 0; column < memberLength; column++) {
     const columnMember = memberData[column];
+    const memberName = columnMember.properties.Name.title?.at(0)?.plain_text;
+    const memberLink = columnMember.url;
+    const link = `=HYPERLINK("${memberLink}", "${memberName}")`;
     sheet
       .getRange(`${getColName(column + START_COLUMN + 1)}${START_ROW}`)
-      .setValue(columnMember.properties.Name.title?.at(0)?.plain_text);
+      .setValue(link);
     sheet
       .getRange(`${getColName(column + START_COLUMN + 1)}${START_ROW - 1}`)
       .setValue(columnMember.properties.社員番号.number);
